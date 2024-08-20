@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/diegomagalhaes-dev/gst-app/database"
+	"github.com/diegomagalhaes-dev/sgt-app/database"
+	"github.com/diegomagalhaes-dev/sgt-app/models"
 	"github.com/gorilla/mux"
-	"github.com/seu-usuario/todo-app/models"
 )
 
 // Get all todos
