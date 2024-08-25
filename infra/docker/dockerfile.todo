@@ -1,0 +1,26 @@
+FROM golang:1.23.0 AS build_todo-api
+
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -o todo-api ./main.go 
+FROM alpine:3.18
+RUN apk --no-cache add postgresql-client
+RUN addgroup -g 1000 -S todo && \
+    adduser -u 1000 -h /app -G todo -S todo
+WORKDIR /app
+COPY --from=build_todo-api --chown=todo:todo /app/todo-api /app/todo-api
+USER todo
+EXPOSE 8000
+
+CMD ["./todo-api"]
+
+LABEL org.opencontainers.image.title="todo-api" \
+      org.opencontainers.image.authors="Diêgo <diegomagalhaes.contact@gmail.com>" \
+      org.opencontainers.image.source="https://github.com/diegomagalhaes-dev/gst-app" \
+      org.opencontainers.image.version="1.0.0"

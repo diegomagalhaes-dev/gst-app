@@ -1,0 +1,11 @@
+apiVersapiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base/service/
+patches:
+- path: ./dev-todo-patch-deploy.yaml
+- path: ./dev-todo-patch-service.yaml
+images:
+- name: service-image
+  newName: golang/service/todo-api
+  newTag: 0.0.1
