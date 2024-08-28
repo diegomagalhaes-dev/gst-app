@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -17,10 +18,12 @@ func ConnectDatabase() {
 	dbName := os.Getenv("DB_NAME")
 	dbPort := os.Getenv("DB_PORT")
 
-	dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable"
+	dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " port=" + dbPort + " sslmode=disable"
 
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	createTodoDatabaseCommand := fmt.Sprintf("CREATE DATABASE %s", dbName)
+	DB.Exec(createTodoDatabaseCommand)
 	if err != nil {
 		log.Fatal("Failed to connect to database!", err)
 	}

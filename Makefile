@@ -7,7 +7,7 @@ KIND            := kindest/node:v1.27.3
 POSTGRES        := postgres:15.4
 
 KIND_CLUSTER    := sgt-kind-cluster
-NAMESPACE       := sgt
+NAMESPACE       := simple-go-todo
 APP             := todo
 SERVICE_NAME    := todo-api
 VERSION         := 0.0.1
@@ -50,7 +50,7 @@ dev-up:
 	kind create cluster \
 		--image $(KIND) \
 		--name $(KIND_CLUSTER) \
-		--config infra/k8s/dev/kind-config.yaml
+		--config infra/k8s/dev/kind/kind.config.yaml
 
 	kubectl config use-context kind-$(KIND_CLUSTER)
 	kubectl wait --timeout=120s --namespace=local-path-storage --for=condition=Available deployment/local-path-provisioner
@@ -62,14 +62,14 @@ dev-down:
 # ------------------------------------------------------------------------------
 
 dev-load:
-	cd infra/k8s/dev/sales; kustomize edit set image service-image=$(SERVICE_IMAGE)
+	cd infra/k8s/dev/service; kustomize edit set image service-image=$(SERVICE_IMAGE)
 	kind load docker-image $(SERVICE_IMAGE) --name $(KIND_CLUSTER)
 
 dev-apply:
 	kustomize build infra/k8s/dev/database | kubectl apply -f -
 	kubectl rollout status --namespace=$(NAMESPACE) --watch --timeout=120s sts/database
 	
-	kustomize build infra/k8s/dev/sales | kubectl apply -f -
+	kustomize build infra/k8s/dev/service | kubectl apply -f -
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(APP) --timeout=120s --for=condition=Ready
 
 dev-restart:

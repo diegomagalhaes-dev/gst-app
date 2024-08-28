@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: todo-api
+  name: simple-go-todo
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: database-data
-  namespace: todo-api
+  namespace: simple-go-todo
 spec:
   accessModes:
     - ReadWriteOnce
@@ -19,7 +19,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: database
-  namespace: todo-api
+  namespace: simple-go-todo
 spec:
   selector:
     matchLabels:
@@ -41,56 +41,59 @@ spec:
           configMap:
             name: pghbaconf
             items:
-              - key: "pg_hba.conf"
-                path: "pg_hba.conf"
+              - key: pg_hba.conf
+                path: pg_hba.conf
       containers:
-      - name: postgres
-        image: postgres:15.4
-        volumeMounts:
-          - name: data
-            mountPath: /var/lib/postgresql/data
-          - name: config
-            readOnly: false
-            mountPath: "/etc/pg_hba.conf"
-            subPath: "pg_hba.conf"
-        resources:
-          requests:
-            cpu: "500m"
-          limits:
-            cpu: "500m"
-        args: ['-c', 'hba_file=/etc/pg_hba.conf']
-        env:
-        - name: POSTGRES_PASSWORD
-          value: postgres
-        ports:
         - name: postgres
-          container: 5432
-        livenessProbe:
-          exec:
-            command:
-            - pg_isready
-            - -h
-            - localhost
-            - -U
-            - postgres
-          initialDelaySeconds: 30
-          timeoutSeconds: 5
-        readinessProbe:
-          exec:
-            command:
-            - pg_isready
-            - -h
-            - localhost
-            - -U
-            - postgres
-          initialDelaySeconds: 5
-          timeoutSeconds: 1
+          image: 'postgres:15.4'
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: config
+              readOnly: false
+              mountPath: /etc/pg_hba.conf
+              subPath: pg_hba.conf
+          resources:
+            requests:
+              cpu: 500m
+            limits:
+              cpu: 500m
+          args:
+            - '-c'
+            - hba_file=/etc/pg_hba.conf
+          env:
+            - name: POSTGRES_PASSWORD
+              value: changeme
+          ports:
+            - name: postgres
+              containerPort: 5432
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - '-h'
+                - localhost
+                - '-U'
+                - postgres
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - '-h'
+                - localhost
+                - '-U'
+                - postgres
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+
 ---
 apiVersion: v1
 kind: Service
-metadata: 
+metadata:
   name: database-service
-  namespace: todo-api
+  namespace: simple-go-todo
 spec:
   type: ClusterIP
   selector:
@@ -104,7 +107,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: pghbaconf
-  namespace: todo-api
+  namespace: simple-go-todo
 data:
   pg_hba.conf: |
     local   all             all                                     trust
